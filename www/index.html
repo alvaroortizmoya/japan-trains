@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Japan Rail Explorer</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@300;400;700&family=Space+Mono:wght@400;700&family=Shippori+Mincho:wght@400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:#0a0c0f; --surface:#111318; --surface2:#181c24;
+      --border:rgba(255,255,255,0.07); --text:#e8e4dc; --text-muted:#6e7480;
+      --accent:#9ACD32; --accent-dim:rgba(154,205,50,0.15); --accent-glow:rgba(154,205,50,0.4);
+      --radius:8px; --panel-w:380px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    html,body{height:100%;overflow:hidden;}
+    body{font-family:'Space Mono',monospace;background:var(--bg);color:var(--text);display:flex;flex-direction:column;}
+    header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+    .logo{display:flex;align-items:center;gap:12px;}
+    .logo-icon{width:32px;height:32px;background:var(--accent);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:16px;}
+    .logo-text{font-family:'Shippori Mincho',serif;font-size:18px;font-weight:700;}
+    .logo-text span{color:var(--accent);}
+    .logo-ja{font-family:'Noto Serif JP',serif;font-size:11px;color:var(--text-muted);display:block;}
+    .header-right{display:flex;align-items:center;gap:16px;font-size:11px;color:var(--text-muted);}
+    .line-badge{display:flex;align-items:center;gap:6px;background:var(--accent-dim);border:1px solid var(--accent-glow);border-radius:20px;padding:4px 12px;color:var(--accent);font-size:11px;}
+    .line-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);}
+    .main{display:flex;flex:1;overflow:hidden;min-height:0;}
+    #map{flex:1;background:#0d1117;}
+    .panel{width:var(--panel-w);background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+    .panel-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);flex-shrink:0;}
+    .panel-label{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--text-muted);margin-bottom:6px;}
+    .panel-title{font-family:'Shippori Mincho',serif;font-size:22px;font-weight:700;line-height:1.2;}
+    .panel-title-ja{font-size:13px;color:var(--text-muted);margin-top:2px;font-family:'Noto Serif JP',serif;font-weight:300;}
+    .panel-body{flex:1;overflow-y:auto;padding:20px;}
+    .panel-body::-webkit-scrollbar{width:4px;}
+    .panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:4px;}
+    .welcome{text-align:center;padding:40px 20px;}
+    .welcome-kanji{font-family:'Noto Serif JP',serif;font-size:72px;color:rgba(154,205,50,0.1);line-height:1;margin-bottom:24px;display:block;}
+    .welcome p{font-size:12px;color:var(--text-muted);line-height:1.8;}
+    .welcome-hint{margin-top:24px;display:flex;flex-direction:column;gap:8px;}
+    .hint-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;font-size:11px;color:var(--text-muted);}
+    .info-section{margin-bottom:20px;}
+    .info-section-title{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--accent);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--accent-dim);}
+    .info-description{font-size:12px;line-height:1.8;color:#b0aba2;font-family:'Noto Serif JP',serif;font-weight:300;}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+    .stat-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
+    .stat-label{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:4px;}
+    .stat-value{font-size:14px;font-weight:700;color:var(--text);}
+    .stat-value.accent{color:var(--accent);}
+    .curiosity-list{display:flex;flex-direction:column;gap:8px;}
+    .curiosity-item{display:flex;gap:10px;font-size:11px;line-height:1.7;color:#9a9590;font-family:'Noto Serif JP',serif;}
+    .curiosity-bullet{color:var(--accent);flex-shrink:0;margin-top:2px;}
+    .tag-list{display:flex;flex-wrap:wrap;gap:6px;}
+    .tag{background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 8px;font-size:10px;color:var(--text-muted);}
+    .lines-list{display:flex;flex-direction:column;gap:6px;}
+    .line-item{display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text-muted);}
+    .line-color-bar{width:4px;height:18px;border-radius:2px;flex-shrink:0;}
+    .train-card{background:var(--surface2);border:1px solid var(--accent-dim);border-radius:var(--radius);padding:14px;margin-top:12px;}
+    .train-card-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+    .train-name{font-size:14px;font-weight:700;color:var(--accent);}
+    .train-type{font-size:10px;color:var(--text-muted);}
+    .map-counter{position:absolute;top:20px;left:20px;z-index:900;background:rgba(17,19,24,0.92);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;backdrop-filter:blur(8px);}
+    .counter-line{font-size:10px;color:var(--text-muted);}
+    .counter-num{font-size:22px;font-weight:700;color:var(--accent);line-height:1;}
+    .map-legend{position:absolute;bottom:20px;left:20px;z-index:900;background:rgba(17,19,24,0.92);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;backdrop-filter:blur(8px);font-size:10px;}
+    .legend-title{font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;}
+    .legend-item{display:flex;align-items:center;gap:8px;color:var(--text-muted);margin-bottom:5px;}
+    .legend-item:last-child{margin-bottom:0;}
+    .legend-line{width:20px;height:3px;border-radius:2px;background:var(--accent);}
+    .legend-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);border:2px solid #0a0c0f;}
+    .leaflet-container{background:#0d1117!important;}
+    .leaflet-tooltip{background:#111318!important;border:1px solid rgba(255,255,255,0.1)!important;border-radius:6px!important;color:#e8e4dc!important;font-family:'Space Mono',monospace!important;font-size:11px!important;padding:6px 10px!important;box-shadow:0 4px 20px rgba(0,0,0,0.5)!important;}
+    .leaflet-tooltip::before{display:none!important;}
+    .tooltip-name{font-weight:700;}
+    .tooltip-ja{color:#6e7480;font-size:10px;font-family:'Noto Serif JP',serif;}
+    .animate-in{animation:slideIn 0.25s ease forwards;}
+    @keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}
+    .fleet-selector{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;}
+    .fleet-btn{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;cursor:pointer;transition:border-color 0.15s,background 0.15s;text-align:left;width:100%;}
+    .fleet-btn:hover{border-color:rgba(154,205,50,0.4);background:#1e2430;}
+    .fleet-btn.active{border-color:var(--accent);background:var(--accent-dim);}
+    .fleet-btn.retired{opacity:0.55;}
+    .fleet-btn-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+    .fleet-btn-info{flex:1;}
+    .fleet-btn-name{font-size:12px;font-weight:700;color:var(--text);}
+    .fleet-btn-label{font-size:10px;color:var(--text-muted);margin-top:1px;}
+    .fleet-pct-bar{height:3px;border-radius:2px;background:var(--surface);margin-top:6px;overflow:hidden;}
+    .fleet-pct-fill{height:100%;border-radius:2px;background:var(--accent);}
+    .fleet-pct-fill.retired{background:#555;}
+    .status-badge{font-size:9px;letter-spacing:0.1em;text-transform:uppercase;padding:2px 7px;border-radius:3px;font-weight:700;flex-shrink:0;}
+    .status-active{background:rgba(154,205,50,0.15);color:var(--accent);}
+    .status-retired{background:rgba(255,255,255,0.05);color:#555;}
+    .train-detail{animation:slideIn 0.2s ease forwards;}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">&#128645;</div>
+    <div>
+      <div class="logo-text">Japan <span>Rail</span> Explorer</div>
+      <div class="logo-ja">日本鉄道探検家</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="line-badge"><div class="line-dot"></div>Yamanote &amp; Keihin-Tohoku</div>
+    <span>JR EAST &middot; TOKIO &#8212; YOKOHAMA</span>
+  </div>
+</header>
+
+<div class="main">
+  <div style="position:relative;flex:1;overflow:hidden;">
+    <div id="map" style="width:100%;height:100%;"></div>
+    <div class="map-legend">
+      <div class="legend-title">Leyenda</div>
+      <div class="legend-item"><div class="legend-line"></div>Línea Yamanote</div>
+      <div class="legend-item"><div class="legend-dot"></div>Estación JR</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#4a9eff"></div>Intercambio</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header">
+      <div class="panel-label">Información</div>
+      <div class="panel-title" id="panelTitle">Japan Rail Explorer</div>
+      <div class="panel-title-ja" id="panelTitleJa">Haz clic en una estación o en la línea</div>
+    </div>
+    <div class="panel-body">
+      <div class="welcome" id="welcomeState">
+        <span class="welcome-kanji">鉄</span>
+        <p>Explora el sistema ferroviario japonés.<br>Haz clic en una <strong>estación</strong> o en la <strong>línea</strong> para ver información.</p>
+        <div class="welcome-hint">
+          <div class="hint-item"><span>&#9679;</span>Clic en estación: detalles y curiosidades</div>
+          <div class="hint-item"><span>&#8212;</span>Clic en la línea: info del tramo</div>
+          <div class="hint-item"><span>&#128269;</span>Scroll para hacer zoom</div>
+        </div>
+      </div>
+      <div id="dynamicContent" style="display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 1. Datos primero -->
+<script src="data/trains.js"></script>
+<script src="data/stations.js"></script>
+<script src="data/lines.js"></script>
+
+<!-- 2. Leaflet después de los datos -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- 3. Lógica de la app al final -->
+<script>
+
+// ── MAPA ──────────────────────────────────────────────────────
+var map = L.map('map', {
+  center: [35.683, 139.740],
+  zoom: 13,
+  zoomControl: true
+});
+
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+  maxZoom: 19,
+  subdomains: 'abcd',
+  attribution: '&copy; OpenStreetMap &copy; CARTO'
+}).addTo(map);
+
+// ── FUNCIÓN GENÉRICA: dibuja línea + estaciones ───────────────
+function drawLine(lineId) {
+  var line = LINES[lineId];
+  if (!line) return;
+  var coords = [];
+  for (var i = 0; i < line.stations.length; i++) {
+    var st = STATIONS[line.stations[i]];
+    if (st) coords.push([st.lat, st.lng]);
+  }
+  // Glow (referenciado para poder animar en hover)
+  var glowPoly = L.polyline(coords, { color: line.color, weight: 16, opacity: 0.12, smoothFactor: 1.5, interactive: false }).addTo(map);
+  // Track
+  var track = L.polyline(coords, { color: line.color, weight: 4, opacity: 0.9, smoothFactor: 1.5 }).addTo(map);
+
+  (function(lid, trackPoly, glowP, lineStations) {
+    trackPoly.on('click', function(e) {
+      var lat = e.latlng.lat, lng = e.latlng.lng, best = null, minD = Infinity;
+      for (var i = 0; i < lineStations.length - 1; i++) {
+        var s1 = STATIONS[lineStations[i]], s2 = STATIONS[lineStations[i+1]];
+        if (!s1 || !s2) continue;
+        var d = Math.sqrt(Math.pow(lat-(s1.lat+s2.lat)/2,2)+Math.pow(lng-(s1.lng+s2.lng)/2,2));
+        if (d < minD) { minD = d; best = { from: s1, to: s2, lineId: lid }; }
+      }
+      if (best) showSegment(best.from, best.to, best.lineId);
+    });
+    trackPoly.on('mouseover', function(){ trackPoly.setStyle({weight:7}); glowP.setStyle({opacity:0.4, weight:20}); map.getContainer().style.cursor='pointer'; });
+    trackPoly.on('mouseout',  function(){ trackPoly.setStyle({weight:4}); glowP.setStyle({opacity:0.12, weight:16}); map.getContainer().style.cursor=''; });
+  })(lineId, track, glowPoly, line.stations);
+}
+
+// ── DIBUJAR TODAS LAS LÍNEAS ──────────────────────────────────
+// Dibuja todas las líneas definidas en lines.js.
+// Para añadir una línea nueva solo hay que editar lines.js.
+var _lineDrawOrder = Object.keys(LINES).reverse(); // reverse: la primera en LINES queda encima
+for (var _li = 0; _li < _lineDrawOrder.length; _li++) drawLine(_lineDrawOrder[_li]);
+
+// ── ESTACIONES: todos los ids únicos de todas las líneas ──────
+var seen = {};
+var allLineIds = Object.keys(LINES);
+for (var li = 0; li < allLineIds.length; li++) {
+  var lineStations = LINES[allLineIds[li]].stations;
+  for (var i = 0; i < lineStations.length; i++) {
+    var stId = lineStations[i];
+    if (seen[stId]) continue;
+    seen[stId] = true;
+    var st = STATIONS[stId];
+    if (!st) continue;
+
+    // Color del marcador: intercambio entre líneas conocidas = blanco, solo una = color de esa línea
+    var knownLines = st.lines.filter(function(lid){ return !!LINES[lid]; });
+    var isInterchange = knownLines.length > 1;
+    var fill = '#ffffff';
+    var r = isInterchange ? 7 : 5;
+    var size = r * 3;
+
+    var svgHtml = '<svg xmlns="http://www.w3.org/2000/svg" width="'+size+'" height="'+size+'">'
+      + '<circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+(r+3)+'" fill="'+fill+'" opacity="0.15"/>'
+      + '<circle cx="'+(size/2)+'" cy="'+(size/2)+'" r="'+r+'" fill="'+fill+'" stroke="#0a0c0f" stroke-width="2"/>'
+      + '</svg>';
+
+    var icon = L.divIcon({ html: svgHtml, className: '', iconSize: [size,size], iconAnchor: [size/2,size/2] });
+
+    (function(station, radius) {
+      var marker = L.marker([station.lat, station.lng], { icon: icon }).addTo(map);
+      var knownLineNames = station.lines.filter(function(lid){ return !!LINES[lid]; })
+        .map(function(lid){ return LINES[lid].name; }).join(', ');
+      marker.bindTooltip(
+        '<div class="tooltip-name">'+station.name+'</div>'
+        +'<div class="tooltip-ja">'+station.nameJa+' &middot; '+(knownLineNames||station.lines.length+' lineas')+'</div>',
+        { direction:'top', offset:[0,-(radius*1.5)], permanent:false }
+      );
+      marker.on('click', function(){ showStation(station); });
+    })(st, r);
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// HELPERS DE RENDER — funciones reutilizadas por todos los paneles
+// ══════════════════════════════════════════════════════════════
+
+function setHeader(title, subtitle) {
+  document.getElementById('panelTitle').textContent = title;
+  document.getElementById('panelTitleJa').textContent = subtitle;
+  document.getElementById('welcomeState').style.display = 'none';
+}
+
+function setContent(html) {
+  var el = document.getElementById('dynamicContent');
+  el.style.display = 'block';
+  el.classList.remove('animate-in');
+  void el.offsetWidth;
+  el.classList.add('animate-in');
+  el.innerHTML = html;
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  var R = 6371, r = Math.PI / 180;
+  var dLat = (lat2-lat1)*r, dLon = (lon2-lon1)*r;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLon/2)*Math.sin(dLon/2);
+  return Math.round(R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))*10)/10;
+}
+
+// Genera el bloque completo de flota (botones + detalle) para una línea dada
+// trainSelectedId: qué tren mostrar expandido por defecto
+function buildFleetBlock(lineId, trainSelectedId) {
+  var fleet = LINE_FLEET[lineId];
+  if (!fleet) return '';
+  var html = '<div class="info-section"><div class="info-section-title">Material rodante</div>'
+    + '<div class="fleet-selector" id="fleetSelector_' + lineId + '">';
+  for (var i = 0; i < fleet.trains.length; i++) {
+    var ft = fleet.trains[i];
+    var tr = TRAINS[ft.trainId];
+    if (!tr) continue;
+    var isPrimary  = (ft.trainId === trainSelectedId);
+    var isRetired  = (tr.status === 'retired');
+    var dotColor   = isRetired ? '#444' : (ft.trainId === fleet.primary ? '#9ACD32' : '#4a9eff');
+    var statusLbl  = isRetired ? 'retirado' : 'activo';
+    var statusCls  = isRetired ? 'status-retired' : 'status-active';
+    var btnCls     = 'fleet-btn' + (isRetired ? ' retired' : '') + (isPrimary ? ' active' : '');
+    html += '<button class="' + btnCls + '" onclick="showTrain(\'' + ft.trainId + '\',\'' + lineId + '\')">'
+      + '<div class="fleet-btn-dot" style="background:' + dotColor + '"></div>'
+      + '<div class="fleet-btn-info">'
+      + '<div class="fleet-btn-name">' + tr.name + '</div>'
+      + '<div class="fleet-btn-label">' + ft.label + '</div>'
+      + (ft.pct > 0 ? '<div class="fleet-pct-bar"><div class="fleet-pct-fill' + (isRetired?' retired':'') + '" style="width:' + ft.pct + '%"></div></div>' : '')
+      + '</div>'
+      + '<span class="status-badge ' + statusCls + '">' + statusLbl + '</span>'
+      + '</button>';
+  }
+  html += '</div>'
+    + '<div id="trainDetail_' + lineId + '"></div>'
+    + '</div>';
+  return html;
+}
+
+// Genera el bloque de líneas donde opera un tren (botones clicables)
+function buildTrainLinesBlock(trainId, accentColor) {
+  var train = TRAINS[trainId];
+  if (!train || !train.lines || train.lines.length === 0) return '';
+  var html = '<div style="margin-top:14px">'
+    + '<div style="font-size:9px;letter-spacing:0.15em;text-transform:uppercase;color:' + accentColor + ';padding-bottom:6px;border-bottom:1px solid rgba(154,205,50,0.12);margin-bottom:8px">L&iacute;neas donde opera</div>'
+    + '<div style="display:flex;flex-direction:column;gap:5px">';
+  for (var i = 0; i < train.lines.length; i++) {
+    var lid = train.lines[i];
+    var l = LINES[lid];
+    if (!l) continue;
+    html += '<button onclick="showLine(\'' + lid + '\')"'
+      + ' style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:8px 10px;cursor:pointer;width:100%;text-align:left;"'
+      + ' onmouseover="this.style.borderColor=\'' + l.color + '\';this.style.background=\'rgba(255,255,255,0.06)\'"'
+      + ' onmouseout="this.style.borderColor=\'rgba(255,255,255,0.07)\';this.style.background=\'rgba(255,255,255,0.03)\'">'
+      + '<div style="width:4px;height:32px;border-radius:2px;background:' + l.color + ';flex-shrink:0"></div>'
+      + '<div style="flex:1">'
+      + '<div style="font-size:12px;font-weight:700;color:#e8e4dc">' + l.name + '</div>'
+      + '<div style="font-size:10px;color:#6e7480;margin-top:1px">' + l.nameJa + ' &middot; ' + l.operator + '</div>'
+      + '</div>'
+      + '<div style="font-size:10px;color:' + l.color + '">Ver &rarr;</div>'
+      + '</button>';
+  }
+  html += '</div></div>';
+  return html;
+}
+
+// Genera la tarjeta de detalle de un tren, con sus líneas al final
+function buildTrainCard(trainId, lineId) {
+  var train = TRAINS[trainId];
+  if (!train) return '';
+  var isRetired   = train.status === 'retired';
+  var accentColor = isRetired ? '#888' : 'var(--accent)';
+  var borderColor = isRetired ? 'rgba(255,255,255,0.05)' : 'var(--accent-dim)';
+  var curiosHtml  = '';
+  for (var i = 0; i < train.curiosities.length; i++) {
+    curiosHtml += '<div class="curiosity-item"><span class="curiosity-bullet" style="color:' + accentColor + '">&#9670;</span><span>' + train.curiosities[i] + '</span></div>';
+  }
+  var retiredBadge = isRetired
+    ? '<div style="margin-bottom:10px;font-size:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:4px;padding:6px 10px;color:#666;">&#9888; Retirado en ' + train.retired + '</div>'
+    : '';
+  return '<div class="train-card train-detail" style="border-color:' + borderColor + '">'
+    + '<div class="train-card-header"><span style="font-size:24px">&#128643;</span>'
+    + '<div style="flex:1">'
+    + '<div class="train-name" style="color:' + accentColor + '">' + train.name + '</div>'
+    + '<div class="train-type">' + train.type + ' &middot; ' + train.manufacturer + '</div>'
+    + '</div></div>'
+    + retiredBadge
+    + '<div style="font-size:11px;color:#b0aba2;font-family:Arial,sans-serif;line-height:1.7;margin-bottom:12px">' + train.description + '</div>'
+    + '<div class="stats-grid" style="margin-bottom:12px">'
+    + '<div class="stat-box"><div class="stat-label">Introducido</div><div class="stat-value">' + train.introduced + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Vel. m&aacute;x.</div><div class="stat-value">' + train.maxSpeed + ' km/h</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Coches</div><div class="stat-value">' + train.cars + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Capacidad</div><div class="stat-value">' + train.capacity + '</div></div>'
+    + '</div>'
+    + '<div class="curiosity-list">' + curiosHtml + '</div>'
+    + buildTrainLinesBlock(trainId, accentColor)
+    + '</div>';
+}
+
+// ══════════════════════════════════════════════════════════════
+// NAVEGACIÓN PRINCIPAL — showStation / showLine / showTrain / showSegment
+// Todas las rutas de navegación pasan por aquí
+// ══════════════════════════════════════════════════════════════
+
+// ESTACIÓN → muestra info + líneas clicables
+function showStation(st) {
+  setHeader(st.name, st.nameJa);
+
+  var linesHtml = '';
+  for (var i = 0; i < st.lines.length; i++) {
+    var lid = st.lines[i];
+    var l = LINES[lid];
+    if (l) {
+      linesHtml += '<button onclick="showLine(\'' + lid + '\')"'
+        + ' style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:6px;padding:8px 10px;cursor:pointer;width:100%;text-align:left;margin-bottom:5px;"'
+        + ' onmouseover="this.style.borderColor=\'' + l.color + '\';this.style.background=\'rgba(255,255,255,0.06)\'"'
+        + ' onmouseout="this.style.borderColor=\'rgba(255,255,255,0.07)\';this.style.background=\'rgba(255,255,255,0.03)\'">'
+        + '<div style="width:4px;height:32px;border-radius:2px;background:' + l.color + ';flex-shrink:0"></div>'
+        + '<div style="flex:1">'
+        + '<div style="font-size:12px;font-weight:700;color:#e8e4dc">' + l.name + '</div>'
+        + '<div style="font-size:10px;color:#6e7480;margin-top:1px">' + l.nameJa + ' &middot; ' + l.operator + '</div>'
+        + '</div>'
+        + '<div style="font-size:10px;color:' + l.color + '">Ver &rarr;</div>'
+        + '</button>';
+    } else {
+      linesHtml += '<div class="line-item"><div class="line-color-bar" style="background:#888"></div><span>' + lid.replace(/_/g,' ') + '</span></div>';
+    }
+  }
+
+  var curiosHtml = '';
+  if (st.curiosities) for (var i = 0; i < st.curiosities.length; i++)
+    curiosHtml += '<div class="curiosity-item"><span class="curiosity-bullet">&#9670;</span><span>' + st.curiosities[i] + '</span></div>';
+
+  var tagsHtml = '';
+  if (st.facilities) for (var i = 0; i < st.facilities.length; i++)
+    tagsHtml += '<span class="tag">' + st.facilities[i] + '</span>';
+
+  var pax = st.dailyPassengers ? Math.round(st.dailyPassengers/1000)+'K' : '-';
+  var op  = st.operator ? st.operator.split('/')[0].trim() : '-';
+
+  var html = '<div class="info-section"><div class="info-section-title">Datos</div><div class="stats-grid">'
+    + '<div class="stat-box"><div class="stat-label">Inaugurada</div><div class="stat-value">' + st.opened + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Pasajeros/d&iacute;a</div><div class="stat-value accent">' + pax + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Operador</div><div class="stat-value" style="font-size:10px">' + op + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">L&iacute;neas</div><div class="stat-value accent">' + st.lines.length + '</div></div>'
+    + '</div></div>'
+    + '<div class="info-section"><div class="info-section-title">Descripci&oacute;n</div><div class="info-description">' + st.description + '</div></div>'
+    + '<div class="info-section"><div class="info-section-title">L&iacute;neas que pasan</div>' + linesHtml + '</div>';
+
+  if (curiosHtml) html += '<div class="info-section"><div class="info-section-title">Curiosidades</div><div class="curiosity-list">' + curiosHtml + '</div></div>';
+  if (tagsHtml)   html += '<div class="info-section"><div class="info-section-title">Servicios</div><div class="tag-list">' + tagsHtml + '</div></div>';
+
+  setContent(html);
+  map.panTo([st.lat, st.lng], { animate: true, duration: 0.5 });
+}
+
+// LÍNEA → muestra info + flota con trenes expandibles
+function showLine(lineId) {
+  var line = LINES[lineId];
+  if (!line) return;
+  var fleet = LINE_FLEET[lineId];
+
+  setHeader(line.name, line.nameJa);
+
+  var curiosHtml = '';
+  for (var i = 0; i < (line.curiosities||[]).length; i++)
+    curiosHtml += '<div class="curiosity-item"><span class="curiosity-bullet">&#9670;</span><span>' + line.curiosities[i] + '</span></div>';
+
+  var html = '<div class="info-section"><div class="info-section-title">Datos</div><div class="stats-grid">'
+    + '<div class="stat-box"><div class="stat-label">Inaugurada</div><div class="stat-value">' + line.opened + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Longitud</div><div class="stat-value">' + line.length + ' km</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Primer tren</div><div class="stat-value">' + line.firstTrain + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Frecuencia</div><div class="stat-value" style="font-size:10px">' + line.frequency + '</div></div>'
+    + '</div></div>'
+    + '<div class="info-section"><div class="info-section-title">Descripci&oacute;n</div><div class="info-description">' + line.description + '</div></div>'
+    + buildFleetBlock(lineId, fleet ? fleet.primary : null)
+    + (curiosHtml ? '<div class="info-section"><div class="info-section-title">Curiosidades</div><div class="curiosity-list">' + curiosHtml + '</div></div>' : '');
+
+  setContent(html);
+
+  // Auto-expand primary train
+  if (fleet) showTrain(fleet.primary, lineId);
+}
+
+// TREN → actualiza el bloque de detalle dentro del selector de flota
+// lineId indica en qué selector de flota debe actualizarse
+function showTrain(trainId, lineId) {
+  // Actualizar botones activos del selector de esta línea
+  var selector = document.getElementById('fleetSelector_' + lineId);
+  if (selector) {
+    var btns = selector.querySelectorAll('.fleet-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.remove('active');
+      if (btns[i].getAttribute('onclick') === "showTrain('" + trainId + "','" + lineId + "')") {
+        btns[i].classList.add('active');
+      }
+    }
+  }
+  // Actualizar el detalle del tren en esta línea
+  var detail = document.getElementById('trainDetail_' + lineId);
+  if (detail) detail.innerHTML = buildTrainCard(trainId, lineId);
+}
+
+// SEGMENTO → tramo entre dos estaciones con flota de la línea
+function showSegment(from, to, lineId) {
+  lineId = lineId || "yamanote";
+  setHeader(from.name + ' - ' + to.name, from.nameJa + ' - ' + to.nameJa);
+  var dist  = haversine(from.lat, from.lng, to.lat, to.lng);
+  var mins  = Math.max(1, Math.round(dist / 0.55));
+  var line  = LINES[lineId];
+  var fleet = LINE_FLEET[lineId];
+
+  var curiosHtml = '';
+  for (var i = 0; i < Math.min(3, line.curiosities.length); i++)
+    curiosHtml += '<div class="curiosity-item"><span class="curiosity-bullet">&#9670;</span><span>' + line.curiosities[i] + '</span></div>';
+
+  var html = '<div class="info-section"><div class="info-section-title">Tramo seleccionado</div>'
+    + '<div class="stat-box" style="margin-bottom:8px">'
+    + '<div style="font-size:13px;font-weight:700;margin-bottom:10px">' + from.name + ' <span style="color:var(--accent)">&#8594;</span> ' + to.name + '</div>'
+    + '<div class="stats-grid">'
+    + '<div class="stat-box"><div class="stat-label">Distancia</div><div class="stat-value">' + dist + ' km</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Tiempo est.</div><div class="stat-value">' + mins + ' min</div></div>'
+    + '</div></div></div>'
+    + '<div class="info-section"><div class="info-section-title">Yamanote Line</div><div class="stats-grid">'
+    + '<div class="stat-box"><div class="stat-label">Frecuencia</div><div class="stat-value" style="font-size:10px">' + line.frequency + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Longitud total</div><div class="stat-value">' + line.length + ' km</div></div>'
+    + '<div class="stat-box"><div class="stat-label">Primer tren</div><div class="stat-value">' + line.firstTrain + '</div></div>'
+    + '<div class="stat-box"><div class="stat-label">&Uacute;ltimo tren</div><div class="stat-value">' + line.lastTrain + '</div></div>'
+    + '</div></div>'
+    + buildFleetBlock("yamanote", fleet ? fleet.primary : null)
+    + (curiosHtml ? '<div class="info-section"><div class="info-section-title">Curiosidades de la l&iacute;nea</div><div class="curiosity-list">' + curiosHtml + '</div></div>' : '');
+
+  setContent(html);
+  if (fleet) showTrain(fleet.primary, "yamanote");
+}
+
+</script>
+</body>
+</html>
