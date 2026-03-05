@@ -1229,6 +1229,18 @@ var STATIONS = {
 
 
   // ── SHONAN MONORAIL ───────────────────────────────────────────
+  "shonan_machiya": {
+    id:"shonan_machiya", name:"Shonan-Machiya", nameJa:"湘南町屋駅",
+    lat:35.3380, lng:139.5226,
+    operator:"Shonan Monorail Co.",
+    dailyPassengers:"N/A", opened:1970,
+    description:"La estación de Shōnan-Machiya, inaugurada el 7 de marzo de 1970, es una parada clave en la línea Enoshima del monorraíl de Shōnan en Kamakura, Japón. Destaca por su estructura elevada y fue reconstruida en 2005 para modernizar sus instalaciones, ofreciendo acceso rápido hacia Ofuna y Nishi-Kamakura en la zona costera.",
+    curiosities:[
+      "Aunque inaugurada en 1970, el edificio de la estación fue reconstruido completamente en 2005 para mejorar la accesibilidad y el diseño.",
+      "Es una ruta común para los viajeros que buscan evitar el tráfico para llegar a las playas y templos de la zona de Enoshima y Kamakura."
+    ],
+    facilities:["Conbini"]
+  },
   "shonan_fukasawa": {
     id:"shonan_fukasawa", name:"Shonan-Fukasawa", nameJa:"湘南深沢",
     lat:35.332, lng:139.5188,
