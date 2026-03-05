@@ -485,17 +485,17 @@ function showSegment(from, to, lineId) {
     + '<div class="stat-box"><div class="stat-label">Distancia</div><div class="stat-value">' + dist + ' km</div></div>'
     + '<div class="stat-box"><div class="stat-label">Tiempo est.</div><div class="stat-value">' + mins + ' min</div></div>'
     + '</div></div></div>'
-    + '<div class="info-section"><div class="info-section-title">Yamanote Line</div><div class="stats-grid">'
+    + '<div class="info-section"><div class="info-section-title">' + line.name + '</div><div class="stats-grid">'
     + '<div class="stat-box"><div class="stat-label">Frecuencia</div><div class="stat-value" style="font-size:10px">' + line.frequency + '</div></div>'
     + '<div class="stat-box"><div class="stat-label">Longitud total</div><div class="stat-value">' + line.length + ' km</div></div>'
     + '<div class="stat-box"><div class="stat-label">Primer tren</div><div class="stat-value">' + line.firstTrain + '</div></div>'
     + '<div class="stat-box"><div class="stat-label">&Uacute;ltimo tren</div><div class="stat-value">' + line.lastTrain + '</div></div>'
     + '</div></div>'
-    + buildFleetBlock("yamanote", fleet ? fleet.primary : null)
+    + buildFleetBlock(lineId, fleet ? fleet.primary : null)
     + (curiosHtml ? '<div class="info-section"><div class="info-section-title">Curiosidades de la l&iacute;nea</div><div class="curiosity-list">' + curiosHtml + '</div></div>' : '');
 
   setContent(html);
-  if (fleet) showTrain(fleet.primary, "yamanote");
+  if (fleet) showTrain(fleet.primary, lineId);
 }
 
 </script>
