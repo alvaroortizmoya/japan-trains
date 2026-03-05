@@ -173,7 +173,7 @@ var LINES = {
       "El tunel de Kamakurayama (451 m) es el tramo recto donde el tren alcanza su velocidad maxima de 75 km/h"
     ],
     stations: [
-      "ofuna", "shonan_fukasawa", "nishi_kamakura", "kataseyama",
+      "ofuna", "shonan_machiya", "shonan_fukasawa", "nishi_kamakura", "kataseyama",
       "mejiroyamashita", "shonan_enoshima"
     ]
   }
