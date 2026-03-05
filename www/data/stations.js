@@ -751,7 +751,7 @@ var STATIONS = {
   },
   "ofuna": {
     id:"ofuna", name:"Ofuna", nameJa:"大船",
-    lat:35.3395, lng:139.5330,
+    lat:35.35431, lng:139.53143,
     operator:"JR East / Shonan Monorail",
     dailyPassengers:480000, opened:1887,
     description:"Terminal sur de la Keihin-Tohoku/Negishi Line y gran nodo ferroviario. Puerta a Kamakura y a la costa de Shonan, famosa por su enorme estatua de Kannon.",
@@ -1231,7 +1231,7 @@ var STATIONS = {
   // ── SHONAN MONORAIL ───────────────────────────────────────────
     "fujimicho": {
     id:"fujimicho", name:"Fujimicho", nameJa:"富士見町駅",
-    lat:35.3406, lng:139.5242,
+    lat:35.34546, lng:139.52938,
     operator:"Shonan Monorail Co.",
     dailyPassengers:"N/A", opened:1970,
     description:"La estación Fujimicho, en el monorraíl Shonan de Japón, destaca por su diseño renovado que simula las capas del paisaje local (montañas y valles) usando policarbonato transparente y tubos metálicos. Situada en una línea colgante única, ofrece vistas panorámicas al monte Fuji y Hakone, convirtiendo el viaje en una experiencia escénica sobre las calles.",
@@ -1244,7 +1244,7 @@ var STATIONS = {
   },
   "shonan_machiya": {
     id:"shonan_machiya", name:"Shonan-Machiya", nameJa:"湘南町屋駅",
-    lat:35.3380, lng:139.5226,
+    lat:35.3379, lng:139.5227,
     operator:"Shonan Monorail Co.",
     dailyPassengers:"N/A", opened:1970,
     description:"La estación de Shōnan-Machiya, inaugurada el 7 de marzo de 1970, es una parada clave en la línea Enoshima del monorraíl de Shōnan en Kamakura, Japón. Destaca por su estructura elevada y fue reconstruida en 2005 para modernizar sus instalaciones, ofreciendo acceso rápido hacia Ofuna y Nishi-Kamakura en la zona costera.",
