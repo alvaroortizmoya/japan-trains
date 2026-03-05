@@ -1230,8 +1230,8 @@ var STATIONS = {
 
   // ── SHONAN MONORAIL ───────────────────────────────────────────
     "fujimicho": {
-    id:"fujimicho", name:"Fujimicho-Machiya", nameJa:"富士見町駅",
-    lat:35.3454, lng:139.5293,
+    id:"fujimicho", name:"Fujimicho", nameJa:"富士見町駅",
+    lat:35.3406, lng:139.5242,
     operator:"Shonan Monorail Co.",
     dailyPassengers:"N/A", opened:1970,
     description:"La estación Fujimicho, en el monorraíl Shonan de Japón, destaca por su diseño renovado que simula las capas del paisaje local (montañas y valles) usando policarbonato transparente y tubos metálicos. Situada en una línea colgante única, ofrece vistas panorámicas al monte Fuji y Hakone, convirtiendo el viaje en una experiencia escénica sobre las calles.",
